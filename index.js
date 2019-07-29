@@ -1,19 +1,20 @@
-import {
-  getHTML,
-  getTwitterFollowers,
-  getInstagramFollowers
-} from "./lib/scraper";
+import express from "express";
+import cors from "cors";
+import db from "./lib/db";
+import "./lib/cron";
+import { getTwitterCount, getInstagramCount } from "./lib/scraper";
 
-async function go() {
-  const iPromise = getHTML("https://instagram.com/wesbos");
-  const tPromise = getHTML("https://twitter.com/wesbos");
+const app = express();
+app.use(cors());
 
-  const [instagramHTML, twitterHTML] = await Promise.all([iPromise, tPromise]);
-  const instagramCount = await getInstagramFollowers(instagramHTML);
-  const twitterCount = await getTwitterFollowers(twitterHTML);
-  console.log(
-    `You have ${twitterCount} Twitter followers and ${instagramCount} Instagram followers.`
-  );
-}
+app.get(`/scrape`, async (req, res, next) => {
+  console.log(`Scraping!!`);
+  const [iCount, tCount] = await Promise.all([
+    getInstagramCount(),
+    getTwitterCount()
+  ]);
+});
 
-go();
+app.listen(2093, () => {
+  console.log(`Example App running on port 2093`);
+});
